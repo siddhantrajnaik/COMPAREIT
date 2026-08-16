@@ -16,3 +16,10 @@ export const IconPin = (p) => <S {...p}><path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 
 export const IconFlame = (p) => <S {...p}><path d="M12 22c4 0 7-2.7 7-6.5 0-4.5-4.5-6-4.5-9.5 0 0-3 1.5-3 5 0 1.2-.8 2-1.8 1.4C8.4 11.4 8 10 8 10c-1 1.4-3 3-3 5.5C5 19.3 8 22 12 22Z" /></S>;
 export const IconCheck = (p) => <S {...p}><path d="m5 13 4 4L19 7" /></S>;
 export const IconClose = (p) => <S {...p}><path d="M6 6l12 12M18 6 6 18" /></S>;
+export const IconBox = (p) => <S {...p}><path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8Z" /><path d="m3.3 7 8.7 5 8.7-5M12 22V12" /></S>;
+export const IconTrendDown = (p) => <S {...p}><path d="m3 7 6.5 6.5 4-4L21 17" /><path d="M15 17h6v-6" /></S>;
+export const IconTarget = (p) => <S {...p}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r=".6" fill="currentColor" /></S>;
+export const IconTag = (p) => <S {...p}><path d="M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.3" /></S>;
+export const IconBowl = (p) => <S {...p}><path d="M3 11h18a9 9 0 0 1-9 9 9 9 0 0 1-9-9Z" /><path d="M8 8c0-1.5 1-2 1-3M12 7c0-1.5 1-2 1-3M16 8c0-1.5 1-2 1-3" /></S>;
+export const IconCompare = (p) => <S {...p}><path d="M4 8h11M4 8l3-3M4 8l3 3" /><path d="M20 16H9m11 0-3-3m3 3-3 3" /></S>;
+export const IconChevron = (p) => <S {...p}><path d="m9 6 6 6-6 6" /></S>;

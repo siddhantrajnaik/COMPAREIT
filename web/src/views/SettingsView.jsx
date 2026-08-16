@@ -84,8 +84,8 @@ export default function SettingsView({ health, reloadHealth, toast, installPromp
   return (
     <>
       {installPrompt && (
-        <div className="card" style={{ borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)' }}>
-          <strong style={{ fontSize: 14 }}>Add to Home Screen</strong>
+        <div className="card" style={{ background: 'linear-gradient(140deg, var(--lav-soft), var(--mint-soft))' }}>
+          <strong style={{ fontSize: 15 }}>Add to Home Screen</strong>
           <p className="tiny muted" style={{ margin: '5px 0 10px', lineHeight: 1.5 }}>
             Installing gives you a real app icon and, on iOS, is the only way notifications work at all.
           </p>
@@ -176,7 +176,7 @@ export default function SettingsView({ health, reloadHealth, toast, installPromp
           Checks your own signed-in Zomato session every minute for discounted cancelled orders
           nearby. Run <code>npm run login</code> once to sign in.
           <br /><br />
-          <b style={{ color: 'var(--text-dim)' }}>Honest caveat:</b> Zomato pushes these mainly through
+          <b style={{ color: 'var(--ink-2)' }}>Honest caveat:</b> Zomato pushes these mainly through
           its own app and the claim window is only a few minutes, so treat this as a second net —
           keep Zomato's own notifications on too.
         </p>
@@ -237,10 +237,10 @@ export default function SettingsView({ health, reloadHealth, toast, installPromp
           <p className="tiny muted">No scrapes in the last 24h.</p>
         )}
         {diag && Object.entries(diag.byPlatform).map(([p, s]) => (
-          <div key={p} style={{ padding: '7px 0', borderBottom: '1px solid var(--line-soft)' }}>
+          <div key={p} style={{ padding: '7px 0', borderBottom: '1px solid var(--line)' }}>
             <div className="row between">
               <span className="sm" style={{ fontWeight: 550 }}>{health?.platformMeta?.[p]?.label || p}</span>
-              <span className="tiny num" style={{ color: s.fail > s.ok ? 'var(--hot)' : 'var(--accent)' }}>
+              <span className="tiny num" style={{ color: s.fail > s.ok ? 'var(--danger)' : 'var(--lav)' }}>
                 {s.ok}/{s.ok + s.fail} ok · {s.avgMs}ms
               </span>
             </div>

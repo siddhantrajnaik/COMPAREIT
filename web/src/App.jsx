@@ -6,7 +6,9 @@ import WatchView from './views/WatchView';
 import BasketView from './views/BasketView';
 import AlertsView from './views/AlertsView';
 import SettingsView from './views/SettingsView';
-import { IconSearch, IconEye, IconBasket, IconBell, IconSliders } from './components/Icons';
+import {
+  IconSearch, IconEye, IconBasket, IconBell, IconSliders, IconPin, IconCheck, IconFlame,
+} from './components/Icons';
 
 const TABS = [
   { id: 'search',   label: 'Compare',  Icon: IconSearch },
@@ -79,15 +81,20 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">
-          <span className="dot" />
-          QuickCompare
-          <small>{health?.location?.locality || '…'}</small>
-        </div>
+        <button className="locpill" onClick={() => setTab('settings')}
+                title="Change delivery location">
+          <span className="orb"><IconPin aria-hidden="true" /></span>
+          {health?.location?.locality || 'Set location'}
+        </button>
         <div className="topbar-right">
-          <span className={`pill ${connected ? 'live' : 'off'}`}>
-            <i className="bulb" />{connected ? 'live' : 'offline'}
-          </span>
+          <button className="iconbtn" onClick={() => setTab('alerts')}
+                  aria-label={unseen > 0 ? `Alerts, ${unseen} unread` : 'Alerts'}>
+            <IconBell aria-hidden="true" />
+            {unseen > 0 && <span className="dot" />}
+          </button>
+          <button className="iconbtn" onClick={() => setTab('settings')} aria-label="Settings">
+            <IconSliders aria-hidden="true" />
+          </button>
         </div>
       </header>
 
@@ -106,19 +113,28 @@ export default function App() {
 
       <nav className="tabbar">
         {TABS.map(({ id, label, Icon }) => (
-          <button key={id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}>
-            <Icon />
+          <button key={id} className={tab === id ? 'on' : ''} onClick={() => setTab(id)}
+                  aria-current={tab === id ? 'page' : undefined}>
+            <span className="ico"><Icon aria-hidden="true" /></span>
             {label}
             {id === 'alerts' && unseen > 0 && <span className="badge">{unseen > 9 ? '9+' : unseen}</span>}
           </button>
         ))}
       </nav>
 
-      <div className="toasts">
+      {/* Alerts are announced politely so a price drop doesn't interrupt typing. */}
+      <div className="toasts" role="status" aria-live="polite">
         {toasts.map((t) => (
           <div key={t.id} className={`toast ${t.kind === 'rescue' ? 'rescue' : ''}`}>
-            <strong>{t.title}</strong>
-            {t.body && <span>{t.body}</span>}
+            <span className="tico">
+              {t.kind === 'rescue'
+                ? <IconFlame width="17" height="17" aria-hidden="true" />
+                : <IconCheck width="17" height="17" aria-hidden="true" />}
+            </span>
+            <div className="grow">
+              <strong>{t.title}</strong>
+              {t.body && <span>{t.body}</span>}
+            </div>
           </div>
         ))}
       </div>

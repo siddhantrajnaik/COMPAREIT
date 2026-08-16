@@ -180,10 +180,10 @@ function Result({ opt }) {
       <div className="section-head"><h2>Result</h2></div>
 
       {rec?.mode === 'split' && opt.split && (
-        <div className="card" style={{ borderColor: 'color-mix(in srgb, var(--accent) 40%, transparent)' }}>
+        <div className="card" style={{ borderColor: 'color-mix(in srgb, var(--lav) 40%, transparent)' }}>
           <div className="row between" style={{ marginBottom: 6 }}>
             <strong style={{ fontSize: 14 }}>Split across {opt.split.platforms.length} apps</strong>
-            <span className="price num" style={{ color: 'var(--accent)' }}>{money(opt.split.total)}</span>
+            <span className="price num" style={{ color: 'var(--lav)' }}>{money(opt.split.total)}</span>
           </div>
           <p className="tiny muted" style={{ marginBottom: 9 }}>
             Saves {money(rec.saves)} versus the best single cart, after both apps' fees.

@@ -15,9 +15,9 @@ const ROOT = path.resolve(fileURLToPath(import.meta.url), '../../..');
 const OUT = path.join(ROOT, 'web', 'public');
 fs.mkdirSync(OUT, { recursive: true });
 
-const BG = '#0B0D10';
-const ACCENT = '#B4F461';
-const DIM = '#3A424D';
+const BG = '#14141F';
+const ACCENT = '#8B7BFF';   // lavender — matches the app's primary
+const DIM = '#3D3D5C';
 
 /** @param {number} s size @param {number} pad inset ratio for maskable safe-area */
 const svg = (s, pad = 0, bg = BG) => {

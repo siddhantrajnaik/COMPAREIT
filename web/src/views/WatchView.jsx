@@ -142,11 +142,11 @@ function WatchCard({ watch: w, onChange, toast }) {
         <>
           <div className="row between" style={{ alignItems: 'flex-end' }}>
             <div>
-              <div className="price num" style={{ fontSize: 22, color: 'var(--accent)' }}>{money(best.price)}</div>
+              <div className="price num" style={{ fontSize: 22, color: 'var(--lav)' }}>{money(best.price)}</div>
               <div className="tiny muted">
-                cheapest on <b style={{ color: 'var(--text-dim)' }}>{best.platform}</b>
+                cheapest on <b style={{ color: 'var(--ink-2)' }}>{best.platform}</b>
                 {best.mrp > best.price && <> · MRP {money(best.mrp)}</>}
-                {!best.in_stock && <> · <span style={{ color: 'var(--hot)' }}>out of stock</span></>}
+                {!best.in_stock && <> · <span style={{ color: 'var(--danger)' }}>out of stock</span></>}
               </div>
             </div>
             {hist?.points?.length > 1 && (
@@ -163,7 +163,7 @@ function WatchCard({ watch: w, onChange, toast }) {
             <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 3 }}>
               {w.current.slice(0, 4).map((c) => (
                 <div key={c.id} className="row between tiny"
-                     style={{ padding: '4px 0', borderTop: '1px solid var(--line-soft)' }}>
+                     style={{ padding: '4px 0', borderTop: '1px solid var(--line)' }}>
                   <span className="dim">{c.platform}</span>
                   <span className="num" style={{ opacity: c.in_stock ? 1 : .4 }}>
                     {money(c.price)}{!c.in_stock && ' · out'}

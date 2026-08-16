@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { money } from '../api';
-import { IconExternal, IconEye, IconPlus, IconCheck } from './Icons';
+import { IconExternal, IconEye, IconPlus, IconCheck, IconBox } from './Icons';
 
 /**
  * One physical product, priced across every platform that stocks it.
  *
- * The design decision that matters: the cheapest STICKER price and the best
- * PRICE-PER-UNIT are marked separately, because they're often different rows.
- * A 1L pack at ₹72 beats a 500ml at ₹40 despite the bigger number, and hiding
- * that would defeat the purpose of the app.
+ * Laid out like the reference's search-result card: a coloured platform mark,
+ * the details, and the price on the right — with the winner promoted to a solid
+ * black pill so the answer is findable without reading a single number.
+ *
+ * The cheapest STICKER price and the best PRICE-PER-UNIT are marked separately,
+ * because they're often different rows. A 1L pack at ₹72 beats 500ml at ₹40
+ * despite the bigger number, and hiding that would defeat the app.
  */
 export default function ProductGroup({ group, onWatch, onBasket }) {
   const [watched, setWatched] = useState(false);
@@ -20,9 +23,9 @@ export default function ProductGroup({ group, onWatch, onBasket }) {
     <article className="group">
       <div className="group-head">
         {group.image
-          ? <img className="thumb" src={group.image} alt="" loading="lazy"
+          ? <img className="thumb" src={group.image} alt="" loading="lazy" width="56" height="56"
                  onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }} />
-          : <div className="thumb ph">◍</div>}
+          : <div className="thumb ph"><IconBox aria-hidden="true" /></div>}
 
         <div className="group-title">
           <h3>{group.name}</h3>
@@ -45,26 +48,20 @@ export default function ProductGroup({ group, onWatch, onBasket }) {
       </div>
 
       <div className="offers">
-        {group.offers.map((o) => (
-          <OfferRow key={o.id} offer={o} multi={multi} />
-        ))}
+        {group.offers.map((o) => <OfferRow key={o.id} offer={o} multi={multi} />)}
       </div>
 
       <div className="group-actions">
-        <button
-          className="btn ghost sm"
-          disabled={watched}
-          onClick={() => { setWatched(true); onWatch?.(group); }}
-        >
-          {watched ? <IconCheck width="14" height="14" /> : <IconEye width="14" height="14" />}
+        <button className="btn ghost sm" disabled={watched}
+                onClick={() => { setWatched(true); onWatch?.(group); }}>
+          {watched ? <IconCheck width="15" height="15" aria-hidden="true" />
+                   : <IconEye width="15" height="15" aria-hidden="true" />}
           {watched ? 'Tracking' : 'Track price'}
         </button>
-        <button
-          className="btn ghost sm"
-          disabled={basketed}
-          onClick={() => { setBasketed(true); onBasket?.(group); }}
-        >
-          {basketed ? <IconCheck width="14" height="14" /> : <IconPlus width="14" height="14" />}
+        <button className="btn ghost sm" disabled={basketed}
+                onClick={() => { setBasketed(true); onBasket?.(group); }}>
+          {basketed ? <IconCheck width="15" height="15" aria-hidden="true" />
+                    : <IconPlus width="15" height="15" aria-hidden="true" />}
           {basketed ? 'In basket' : 'Add to basket'}
         </button>
       </div>
@@ -78,36 +75,40 @@ function OfferRow({ offer: o, multi }) {
   const cls = ['offer', winner ? 'best' : '', !o.inStock ? 'oos' : ''].filter(Boolean).join(' ');
 
   return (
-    <a className={cls} href={o.url || '#'} target="_blank" rel="noreferrer"
+    <a className={cls} href={o.url || undefined} target="_blank" rel="noreferrer"
        onClick={(e) => { if (!o.url) e.preventDefault(); }}>
-      <span className="bar" style={{ background: o.meta.color }} />
+      <span className="mark" style={{ background: o.meta.color, color: o.meta.textColor }} aria-hidden="true">
+        {o.meta.label.slice(0, 1)}
+      </span>
 
       <div className="offer-mid">
         <div className="offer-name">
           {o.meta.label}
-          {o.url && <IconExternal width="11" height="11" style={{ opacity: .35 }} />}
+          {o.url && <IconExternal width="12" height="12" aria-hidden="true" />}
         </div>
         <div className="offer-meta">
           {o.unitText && <span>{o.unitText}</span>}
           {o.eta && <span>· {o.eta}</span>}
           {o.deal?.median && o.price < o.deal.median && (
-            <span style={{ color: 'var(--accent-dk)' }}>
-              · below its {money(o.deal.median)} usual
+            <span style={{ color: 'var(--mint-ink)', fontWeight: 650 }}>
+              · under its {money(o.deal.median)} usual
             </span>
           )}
         </div>
-      </div>
-
-      <div className="offer-right">
-        <div className="tagline">
-          {!o.inStock && <span className="tag oos">out</span>}
+        <div className="tagline" style={{ justifyContent: 'flex-start', marginTop: 6 }}>
+          {!o.inStock && <span className="tag oos">out of stock</span>}
           {winner && <span className="tag best">cheapest</span>}
           {multi && o.inStock && o.isBestPpu && !o.isCheapest && <span className="tag ppu">best value</span>}
           {o.discount > 0 && <span className="tag off">{o.discount}% off</span>}
         </div>
-        <div className="price num">{money(o.price)}</div>
-        {o.mrp && o.mrp > o.price && <div className="mrp num">{money(o.mrp)}</div>}
-        {o.ppu && <div className="ppu num">{money(o.ppu.value)}/{o.ppu.label}</div>}
+      </div>
+
+      <div className="offer-right">
+        {winner
+          ? <span className="pricepill num">{money(o.price)}</span>
+          : <span className="price num">{money(o.price)}</span>}
+        {o.mrp && o.mrp > o.price && <span className="mrp num">{money(o.mrp)}</span>}
+        {o.ppu && <span className="ppu num">{money(o.ppu.value)}/{o.ppu.label}</span>}
       </div>
     </a>
   );

@@ -23,7 +23,7 @@ export default function Sparkline({ points, median, height = 34 }) {
 
   const last = points[points.length - 1];
   const falling = points.length > 1 && last.p < points[0].p;
-  const stroke = falling ? 'var(--accent)' : 'var(--text-dim)';
+  const stroke = falling ? 'var(--lav)' : 'var(--ink-2)';
 
   return (
     <svg className="spark" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
@@ -35,7 +35,7 @@ export default function Sparkline({ points, median, height = 34 }) {
       </defs>
       {median != null && (
         <line x1="0" x2={W} y1={y(median)} y2={y(median)}
-              stroke="var(--text-mute)" strokeWidth="0.6" strokeDasharray="2 2" vectorEffect="non-scaling-stroke" />
+              stroke="var(--ink-3)" strokeWidth="0.6" strokeDasharray="2 2" vectorEffect="non-scaling-stroke" />
       )}
       <path d={area} fill="url(#sparkfill)" />
       <path d={d} fill="none" stroke={stroke} strokeWidth="1.4"

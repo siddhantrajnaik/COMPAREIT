@@ -50,7 +50,8 @@ export default function DealsStrip({ bump }) {
       {deals?.map((d) => (
         <a key={d.id} className="deal" href={d.url || '#'} target="_blank" rel="noreferrer"
            onClick={(e) => { if (!d.url) e.preventDefault(); }}>
-          <span className="bar" style={{ background: d.meta.color }} />
+          <span className="mark" style={{ background: d.meta.color, color: d.meta.textColor || '#fff' }}
+                aria-hidden="true">{d.meta.label.slice(0, 1)}</span>
           <div className="grow" style={{ minWidth: 0 }}>
             <div className="deal-name">{d.name}</div>
             <div className="offer-meta">
@@ -67,7 +68,7 @@ export default function DealsStrip({ bump }) {
             </div>
           </div>
           <div className="offer-right">
-            <div className="price num" style={{ color: 'var(--accent)' }}>{money(d.price)}</div>
+            <span className="pricepill num">{money(d.price)}</span>
             {d.mrp > d.price && <div className="mrp num">{money(d.mrp)}</div>}
             {d.hasHistory && d.median > d.price && <div className="ppu num">was ~{money(d.median)}</div>}
             {d.url && <IconExternal width="11" height="11" style={{ opacity: .3, marginTop: 2 }} />}
