@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "quickcompare",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["--disable-warning=ExperimentalWarning", "server/src/index.js"],
+      "port": 5177,
+      "url": "http://localhost:5177"
+    }
+  ]
+}

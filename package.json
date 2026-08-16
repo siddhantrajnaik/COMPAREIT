@@ -1,0 +1,30 @@
+{
+  "name": "quickcompare",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local-first quick-commerce price comparison, deal alerts and food-rescue radar for India",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "scripts": {
+    "setup": "npm install && npm run browsers && npm run keys && npm run icons && npm run build",
+    "browsers": "npx playwright install chromium",
+    "keys": "node server/scripts/genkeys.js",
+    "icons": "node server/scripts/genicons.js",
+    "dev": "concurrently -n server,web -c cyan,magenta \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "node --disable-warning=ExperimentalWarning --watch server/src/index.js",
+    "dev:web": "npm -w web run dev",
+    "build": "npm -w web run build",
+    "start": "node --disable-warning=ExperimentalWarning server/src/index.js",
+    "test": "node --disable-warning=ExperimentalWarning server/test/run.js",
+    "login": "node server/scripts/login.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
