@@ -1,0 +1,39 @@
+# Automatic HTTPS via Let's Encrypt. Caddy handles issuance and renewal with
+# no configuration beyond the hostname.
+
+{$DOMAIN} {
+	tls {$TLS_EMAIL}
+
+	encode zstd gzip
+
+	# Server-sent events power the live price stream. Buffering them would
+	# make the app look frozen, so this route is proxied unbuffered.
+	@sse path /api/events
+	handle @sse {
+		reverse_proxy app:5177 {
+			flush_interval -1
+			transport http {
+				response_header_timeout 24h
+			}
+		}
+	}
+
+	handle {
+		reverse_proxy app:5177
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "SAMEORIGIN"
+		-Server
+	}
+
+	log {
+		output file /data/access.log {
+			roll_size 10MB
+			roll_keep 3
+		}
+	}
+}

@@ -7,6 +7,13 @@
       "runtimeArgs": ["--disable-warning=ExperimentalWarning", "server/src/index.js"],
       "port": 5177,
       "url": "http://localhost:5177"
+    },
+    {
+      "name": "static-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server/scripts/serve-static.js", "/COMPAREIT/", "5178"],
+      "port": 5178,
+      "url": "http://localhost:5178"
     }
   ]
 }

@@ -4,7 +4,14 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 const API = 'http://localhost:5177';
 
+// Two builds from one source tree:
+//   default        -> served by the local Node server at "/"
+//   VITE_STATIC=1  -> GitHub Pages, served under /<repo>/ with no backend
+const STATIC = process.env.VITE_STATIC === '1';
+const BASE = process.env.VITE_BASE || (STATIC ? '/COMPAREIT/' : '/');
+
 export default defineConfig({
+  base: BASE,
   plugins: [
     react(),
     VitePWA({
@@ -24,8 +31,8 @@ export default defineConfig({
         background_color: '#F3F1FB',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
-        scope: '/',
+        start_url: BASE,
+        scope: BASE,
         categories: ['shopping', 'food', 'utilities'],
         icons: [
           { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

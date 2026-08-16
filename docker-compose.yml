@@ -1,0 +1,68 @@
+# Full QuickCompare on an always-on VM, with automatic HTTPS.
+#
+# HTTPS is not decoration here: the Push API refuses to register on anything
+# but a secure origin, so without a real certificate you get the app but no
+# notifications. Caddy obtains and renews one from Let's Encrypt automatically.
+#
+#   cp .env.example .env      # then set VAPID keys, DOMAIN, LAT/LON/PINCODE
+#   docker compose up -d
+#
+# No domain? DuckDNS gives you one free — see DEPLOY.md.
+
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      # Chromium is memory-hungry; cap the JS heap so the poller can't
+      # slowly starve the box.
+      NODE_OPTIONS: "--max-old-space-size=768"
+      HEADLESS: "true"
+      HOST: "0.0.0.0"
+      PORT: "5177"
+      LAT: "${LAT:-12.9716}"
+      LON: "${LON:-77.5946}"
+      LOCALITY: "${LOCALITY:-Bengaluru}"
+      PINCODE: "${PINCODE:-560001}"
+      # Instamart, BigBasket and JioMart refuse datacenter IPs, so they're
+      # omitted by default on a hosted box. Add them back if yours works.
+      PLATFORMS: "${PLATFORMS:-blinkit,zepto,dmart,flipkart}"
+      POLL_INTERVAL_MS: "${POLL_INTERVAL_MS:-3600000}"
+      SCRAPE_DELAY_MS: "${SCRAPE_DELAY_MS:-2500}"
+      VAPID_PUBLIC_KEY: "${VAPID_PUBLIC_KEY}"
+      VAPID_PRIVATE_KEY: "${VAPID_PRIVATE_KEY}"
+      VAPID_SUBJECT: "${VAPID_SUBJECT:-mailto:you@example.com}"
+      RESCUE_ENABLED: "${RESCUE_ENABLED:-false}"
+    volumes:
+      # SQLite history and the browser profile. Losing this loses the price
+      # history that makes deal detection meaningful — back it up.
+      - qc-data:/app/data
+    # Chromium needs more than Docker's default 64MB of shared memory.
+    shm_size: "1gb"
+    expose:
+      - "5177"
+    networks: [qc]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: "${DOMAIN:?set DOMAIN in .env — e.g. quickcompare.duckdns.org}"
+      TLS_EMAIL: "${TLS_EMAIL:-}"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data          # certificates — persist or you'll hit rate limits
+      - caddy-config:/config
+    depends_on: [app]
+    networks: [qc]
+
+volumes:
+  qc-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  qc:

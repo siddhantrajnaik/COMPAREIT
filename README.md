@@ -11,16 +11,24 @@ Runs entirely on your own machine. Nothing leaves the device.
 
 ## Platform status — read before you file a bug
 
-| Platform | State |
-|---|---|
-| **Blinkit** | Verified working |
-| **Zepto** | Verified working |
-| **DMart** | Verified working |
-| **Flipkart** | Verified working — see pincode note below |
-| **Instamart** | Adapter written, **unverified** (blocked from the test network) |
-| **BigBasket** | Adapter written, **unverified** (blocked from the test network) |
-| **JioMart** | **Off by default.** Gates hard on pincode and resists automation; enable in `.env` if it works for you |
-| **Amazon Now** | **Not supported.** Amazon answers automated requests with a download-trigger, and Amazon Now is app-first behind auth. No honest adapter is possible |
+| Platform | Local (home IP) | Hosted (datacenter IP) |
+|---|---|---|
+| **Blinkit** | Verified working | Verified working |
+| **Zepto** | Verified working | Verified working |
+| **DMart** | Verified working | Verified working |
+| **Flipkart** | Verified working | Verified working — see pincode note |
+| **Instamart** | Adapter written, unverified | **Blocked** — empty response |
+| **BigBasket** | Adapter written, unverified | **Blocked** — empty response |
+| **JioMart** | **Off by default** — gates hard on pincode and resists automation | Blocked |
+| **Amazon Now** | **Not supported.** Amazon answers automation with a download-trigger, and Amazon Now is app-first behind auth. No honest adapter is possible | — |
+
+An earlier version of this README claimed Zepto blocks datacenter IPs. That was
+wrong — the empty response came from the old `zeptonow.com` URL before its
+redirect, compounded by a broken adapter. Once fixed, Zepto returns full results
+from a datacenter. Only Instamart, BigBasket and JioMart genuinely block.
+
+This matters because it means **hosting works** for four platforms including the
+two largest. See [DEPLOY.md](DEPLOY.md).
 
 ---
 
@@ -40,17 +48,27 @@ parsing failure.
 
 ---
 
-## Why it runs locally (this is the important part)
+## Why it drives a real browser
 
-Zepto and Swiggy Instamart answer requests from datacenter IPs — cloud servers,
-VPNs, proxies — with an empty page. Not an error, not a captcha: a `202` and zero
-bytes. Blinkit puts Cloudflare in front of its API host.
+Every one of these platforms refuses plain HTTP requests — Cloudflare on
+Blinkit's API host, bot walls elsewhere. None of them refuse an actual browser.
+So this drives a real Chromium through Playwright, at a human pace, rather than
+pretending to be one with forged headers.
 
-They do **not** block normal home connections with a real browser.
+Running it on your **home connection** reaches the most platforms, because
+Instamart, BigBasket and JioMart reject datacenter IPs. Hosting it still gets you
+Blinkit, Zepto, DMart and Flipkart.
 
-So this is built as a local app driving a real Chromium via Playwright, on your
-network, at a human pace. That's what makes it work at all. It also means: don't
-deploy this to a VPS and expect results, and turn your VPN off before searching.
+## Where to run it
+
+| | Local | GitHub Actions + Pages | Always-on VM |
+|---|---|---|---|
+| Cost | Free | Free | Free (Oracle Always Free) |
+| Platforms | All 7 | 4 | 4 |
+| Live search | Yes | No — watchlist only | Yes |
+| Needs your PC on | Yes | No | No |
+
+Full instructions for the hosted options: **[DEPLOY.md](DEPLOY.md)**.
 
 ---
 

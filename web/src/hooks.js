@@ -13,6 +13,10 @@ export function useSSE(handlers) {
   ref.current = handlers;
 
   useEffect(() => {
+    // No server in the static build — there's nothing to stream from, and
+    // retrying forever would just fill the console with failures.
+    if (import.meta.env.VITE_STATIC === '1') return undefined;
+
     let es;
     let retry;
     let closed = false;

@@ -1,0 +1,106 @@
+name: Scrape and deploy
+
+# Scheduled scrape -> commit data -> build static site -> publish to Pages.
+#
+# Runs on GitHub's runners, which are datacenter IPs. Blinkit, Zepto, DMart and
+# Flipkart serve those fine; Instamart, BigBasket and JioMart do not, so they're
+# left out of the watchlist by default. That's a limitation of hosting, not of
+# the adapters — running locally on a home connection reaches all of them.
+
+on:
+  schedule:
+    # Every 3 hours. Deliberately not more often: these are real shops, and a
+    # polite cadence is both decent and less likely to get the runner blocked.
+    - cron: '17 */3 * * *'
+  workflow_dispatch:        # lets you trigger a refresh by hand
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'watchlist.json'
+      - '.github/workflows/deploy.yml'
+
+permissions:
+  contents: write           # to commit refreshed data back to the repo
+  pages: write
+  id-token: write
+
+concurrency:
+  group: scrape-deploy
+  cancel-in-progress: false   # never interrupt a run mid-commit
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Scrape watchlist
+        id: scrape
+        # A failed scrape must not wipe the site: we keep the last good data
+        # and deploy that instead.
+        continue-on-error: true
+        env:
+          HEADLESS: 'true'
+          SCRAPE_DELAY_MS: '2500'
+        run: node --disable-warning=ExperimentalWarning server/scripts/scrape-static.js
+
+      - name: Send push notifications
+        if: steps.scrape.outcome == 'success'
+        continue-on-error: true
+        env:
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
+          PUSH_SUBSCRIPTION: ${{ secrets.PUSH_SUBSCRIPTION }}
+        run: node --disable-warning=ExperimentalWarning server/scripts/send-push.js
+
+      - name: Commit refreshed data
+        run: |
+          rm -f .push-queue.json
+          if git diff --quiet -- web/public/data; then
+            echo "No price changes this run."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data
+          git commit -m "data: refresh prices $(date -u '+%Y-%m-%d %H:%M UTC')"
+          git push
+
+      - name: Build static site
+        env:
+          VITE_STATIC: '1'
+          VITE_BASE: /${{ github.event.repository.name }}/
+        run: npm run build
+
+      - name: SPA fallback
+        # Pages serves 404.html for unknown paths; making it the app keeps
+        # client-side routing and hard refreshes working.
+        run: cp web/dist/index.html web/dist/404.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: scrape
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

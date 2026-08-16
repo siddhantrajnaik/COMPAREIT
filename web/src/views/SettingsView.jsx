@@ -7,6 +7,7 @@ export default function SettingsView({ health, reloadHealth, toast, installPromp
   const [loc, setLoc] = useState(health?.location || { lat: 12.9716, lon: 77.5946, locality: '', pincode: '' });
   const [pushOn, setPushOn] = useState(false);
   const [busy, setBusy] = useState('');
+  const [subJson, setSubJson] = useState(null);
   const { data: diag, run: reloadDiag } = useAsync(api.diagnostics, []);
   const { data: cityList } = useAsync(api.cities, []);
   const cities = cityList || [];
@@ -67,13 +68,32 @@ export default function SettingsView({ health, reloadHealth, toast, installPromp
   const togglePush = async () => {
     setBusy('push');
     try {
-      if (pushOn) { await disablePush(); setPushOn(false); toast?.({ title: 'Notifications off' }); }
-      else {
+      if (pushOn) {
+        await disablePush(); setPushOn(false); setSubJson(null);
+        toast?.({ title: 'Notifications off' });
+      } else {
         const r = await enablePush(health?.vapidPublicKey);
-        if (r.ok) { setPushOn(true); toast?.({ title: 'Notifications on', body: 'Send a test to confirm.' }); }
-        else toast?.({ title: 'Could not enable', body: r.reason });
+        if (r.ok) {
+          setPushOn(true);
+          if (r.manual) {
+            // Static build: nowhere to POST it, so surface it for copying.
+            setSubJson(JSON.stringify(r.subscription));
+            toast?.({ title: 'Subscription ready', body: 'Copy it into the PUSH_SUBSCRIPTION secret.' });
+          } else {
+            toast?.({ title: 'Notifications on', body: 'Send a test to confirm.' });
+          }
+        } else toast?.({ title: 'Could not enable', body: r.reason });
       }
     } finally { setBusy(''); }
+  };
+
+  const copySub = async () => {
+    try {
+      await navigator.clipboard.writeText(subJson);
+      toast?.({ title: 'Copied', body: 'Paste it into the PUSH_SUBSCRIPTION repo secret.' });
+    } catch {
+      toast?.({ title: 'Copy failed', body: 'Select the text and copy it manually.' });
+    }
   };
 
   const toggleRescue = async (on) => {
@@ -158,10 +178,29 @@ export default function SettingsView({ health, reloadHealth, toast, installPromp
             Server has no VAPID keys. Run <code>npm run keys</code>, then restart.
           </p>
         )}
-        <button className="btn ghost sm" onClick={() => api.testPush().then((r) =>
-          toast?.({ title: 'Test sent', body: `${r.subscribers} device(s) subscribed.` }))}>
-          Send a test notification
-        </button>
+        {subJson ? (
+          <>
+            <p className="tiny muted" style={{ marginBottom: 8, lineHeight: 1.55 }}>
+              This build has no server, so paste this into the repo secret
+              <b style={{ color: 'var(--ink-2)' }}> PUSH_SUBSCRIPTION</b> — the scheduled
+              job sends your alerts through it.
+            </p>
+            <textarea readOnly value={subJson} onFocus={(e) => e.target.select()}
+                      style={{
+                        width: '100%', minHeight: 88, fontSize: 11, lineHeight: 1.4,
+                        fontFamily: 'var(--mono)', resize: 'vertical', marginBottom: 10,
+                        background: 'var(--surface-2)', border: '1.5px solid transparent',
+                        borderRadius: 'var(--r-sm)', padding: 10, color: 'var(--ink-2)',
+                      }} />
+            <button className="btn sm" onClick={copySub}>Copy subscription</button>
+          </>
+        ) : (
+          <button className="btn ghost sm" onClick={() => api.testPush()
+            .then((r) => toast?.({ title: 'Test sent', body: `${r.subscribers} device(s) subscribed.` }))
+            .catch((e) => toast?.({ title: 'Not available here', body: e.message }))}>
+            Send a test notification
+          </button>
+        )}
       </div>
 
       <div className="section-head"><h2>Food Rescue radar</h2></div>

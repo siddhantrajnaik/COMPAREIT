@@ -1,7 +1,13 @@
 node_modules/
 dist/
-data/
+
+# Root-anchored on purpose. A bare `data/` would also match
+# web/public/data/, which is the scraped JSON the Pages build must commit.
+/data/
+
 scratch/
+.tmp/
+.push-queue.json
 .env
 *.log
 .DS_Store

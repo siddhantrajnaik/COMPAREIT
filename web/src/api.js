@@ -1,3 +1,12 @@
+import { staticApi } from './staticApi';
+
+/**
+ * Two deployments share this UI: the local app (full Node backend) and the
+ * GitHub Pages build (scheduled JSON snapshots, no server). The build flag
+ * picks which implementation `api` points at, so no component needs to know.
+ */
+export const IS_STATIC = import.meta.env.VITE_STATIC === '1';
+
 const j = async (res) => {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -18,7 +27,7 @@ const post = send('POST');
 const patch = send('PATCH');
 const del = send('DELETE');
 
-export const api = {
+const liveApi = {
   health: () => get('/api/health'),
   cities: () => get('/api/cities'),
   setLocation: (b) => post('/api/location', b),
@@ -74,6 +83,8 @@ export const api = {
   diagnostics: () => get('/api/diagnostics'),
 };
 
+export const api = IS_STATIC ? staticApi : liveApi;
+
 /** base64url -> Uint8Array, required by PushManager.subscribe. */
 function urlB64ToUint8(base64) {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4);
@@ -97,7 +108,16 @@ export async function enablePush(vapidPublicKey) {
         : 'This browser has no Push API.',
     };
   }
-  if (!vapidPublicKey) return { ok: false, reason: 'Server has no VAPID key. Run `npm run keys` and restart.' };
+  const key = vapidPublicKey || (IS_STATIC ? import.meta.env.VITE_VAPID_PUBLIC_KEY : null);
+  if (!key) {
+    return {
+      ok: false,
+      reason: IS_STATIC
+        ? 'No VAPID public key in this build. Set VITE_VAPID_PUBLIC_KEY when building, or run the app locally.'
+        : 'Server has no VAPID key. Run `npm run keys` and restart.',
+    };
+  }
+  vapidPublicKey = key;
   if (!window.isSecureContext) {
     return { ok: false, reason: 'Push needs HTTPS or localhost. Over LAN, use the localhost address or a tunnel.' };
   }
@@ -113,6 +133,14 @@ export async function enablePush(vapidPublicKey) {
       applicationServerKey: urlB64ToUint8(vapidPublicKey),
     });
   }
+
+  // Static builds have no server to register with. The subscription is handed
+  // back for the user to paste into a GitHub secret, which is what the
+  // scheduled Action sends through.
+  if (IS_STATIC) {
+    return { ok: true, manual: true, endpoint: sub.endpoint, subscription: sub.toJSON() };
+  }
+
   await api.subscribe(sub.toJSON());
   return { ok: true, endpoint: sub.endpoint };
 }

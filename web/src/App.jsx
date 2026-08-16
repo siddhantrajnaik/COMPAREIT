@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { api } from './api';
+import { api, IS_STATIC, ago } from './api';
 import { useSSE, useAsync, useToasts } from './hooks';
 import SearchView from './views/SearchView';
 import WatchView from './views/WatchView';
@@ -87,6 +87,12 @@ export default function App() {
           {health?.location?.locality || 'Set location'}
         </button>
         <div className="topbar-right">
+          {IS_STATIC && health?.generatedAt && (
+            <span className="pstat" title="This is a scheduled snapshot, not live prices">
+              <i className="swatch" style={{ background: 'var(--peach)' }} />
+              {ago(health.generatedAt)}
+            </span>
+          )}
           <button className="iconbtn" onClick={() => setTab('alerts')}
                   aria-label={unseen > 0 ? `Alerts, ${unseen} unread` : 'Alerts'}>
             <IconBell aria-hidden="true" />
@@ -99,6 +105,16 @@ export default function App() {
       </header>
 
       <main className="main" key={tab}>
+        {IS_STATIC && tab === 'search' && (
+          <div className="card tight" style={{ background: 'var(--lav-soft)' }}>
+            <strong style={{ fontSize: 13.5, color: 'var(--lav-ink)' }}>Scheduled snapshot</strong>
+            <p className="tiny muted" style={{ marginTop: 5, lineHeight: 1.5 }}>
+              Prices here are refreshed on a timer, not searched live — this page has no server.
+              You can browse tracked items and deals. For live search across every platform,
+              run the app on your own machine.
+            </p>
+          </div>
+        )}
         {tab === 'search' && (
           <SearchView health={health} onWatch={addWatch} onBasket={addBasket} toast={toast} />
         )}

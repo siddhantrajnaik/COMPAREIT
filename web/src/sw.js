@@ -11,10 +11,11 @@ cleanupOutdatedCaches();
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 
-// Never cache the API — stale prices are worse than no prices.
+// Never cache the API or the scheduled data files — stale prices are worse
+// than no prices, and the static build's JSON is refreshed on every deploy.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  if (url.pathname.startsWith('/api')) {
+  if (url.pathname.includes('/api/') || url.pathname.includes('/data/')) {
     event.respondWith(fetch(event.request).catch(() =>
       new Response(JSON.stringify({ error: 'offline' }), {
         status: 503, headers: { 'Content-Type': 'application/json' },

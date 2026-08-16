@@ -1,0 +1,57 @@
+{
+  "_comment": "What the scheduled scraper tracks. Edit this file, commit, and the next run picks it up. Keep it modest — every entry costs a page load on every platform, and hammering them is both rude and a good way to get blocked.",
+  "location": {
+    "locality": "Bengaluru",
+    "lat": 12.9716,
+    "lon": 77.5946,
+    "pincode": "560001"
+  },
+  "platforms": [
+    "blinkit",
+    "zepto",
+    "dmart",
+    "flipkart"
+  ],
+  "items": [
+    {
+      "query": "amul butter 100 g",
+      "label": "Amul Butter 100g"
+    },
+    {
+      "query": "amul gold milk 1 ltr",
+      "label": "Amul Gold Milk 1L"
+    },
+    {
+      "query": "nandini toned milk 1 ltr",
+      "label": "Nandini Toned Milk 1L"
+    },
+    {
+      "query": "amul taaza toned milk",
+      "label": "Amul Taaza Toned Milk"
+    },
+    {
+      "query": "britannia brown bread",
+      "label": "Brown Bread"
+    },
+    {
+      "query": "eggs 6 pieces",
+      "label": "Eggs (6)"
+    },
+    {
+      "query": "amul paneer 200 g",
+      "label": "Amul Paneer 200g"
+    },
+    {
+      "query": "tata salt 1 kg",
+      "label": "Tata Salt 1kg"
+    },
+    {
+      "query": "aashirvaad atta 5 kg",
+      "label": "Aashirvaad Atta 5kg"
+    },
+    {
+      "query": "maggi noodles",
+      "label": "Maggi Noodles"
+    }
+  ]
+}
