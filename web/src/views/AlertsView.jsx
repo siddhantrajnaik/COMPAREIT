@@ -1,4 +1,4 @@
-import { api, money, ago } from '../api';
+import { api, money, ago, IS_STATIC } from '../api';
 import { useAsync } from '../hooks';
 import {
   IconTrash, IconTarget, IconTag, IconTrendDown, IconBox, IconBowl, IconBell,
@@ -28,7 +28,7 @@ export default function AlertsView({ bump }) {
     <>
       <div className="section-head">
         <h2>Alerts</h2>
-        {alerts?.length > 0 && (
+        {!IS_STATIC && alerts?.length > 0 && (
           <button className="btn ghost sm" onClick={clear}>
             <IconTrash width="15" height="15" aria-hidden="true" /> Clear
           </button>

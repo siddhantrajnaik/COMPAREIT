@@ -44,6 +44,28 @@ export default function App() {
 
   useEffect(() => { api.alerts(50).then((a) => setUnseen(a.filter((x) => !x.seen).length)).catch(() => {}); }, []);
 
+  /**
+   * Safety net for actions the static build can't perform.
+   *
+   * The audit found ten call sites that fire a request without catching it — on
+   * Pages those became unhandled rejections, so the button simply did nothing
+   * and the user got no explanation. Handling it centrally means a failure is
+   * always visible, even from a path nobody remembered to guard.
+   */
+  useEffect(() => {
+    const onReject = (e) => {
+      const err = e.reason;
+      if (!err?.message) return;
+      e.preventDefault();
+      toast({
+        title: err.unsupported ? 'Not available here' : 'Something went wrong',
+        body: err.message,
+      });
+    };
+    window.addEventListener('unhandledrejection', onReject);
+    return () => window.removeEventListener('unhandledrejection', onReject);
+  }, [toast]);
+
   useEffect(() => {
     if (tab === 'alerts' && unseen > 0) { api.markSeen().catch(() => {}); setUnseen(0); }
   }, [tab, unseen]);

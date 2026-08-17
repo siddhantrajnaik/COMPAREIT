@@ -1,14 +1,18 @@
 /**
  * Tell "this platform returned nothing" apart from "this platform refused us".
  *
- * Zepto and Swiggy answer requests from datacenter/VPN IPs with a 202 and a
- * completely empty body — no markup, no error, nothing. Scraped naively that
- * looks exactly like a search with zero results, which sends you hunting for a
- * parser bug that doesn't exist. This checks for the actual signature of a
- * block (a page that never rendered) and raises a distinct error, so the UI can
- * say "blocked" instead of quietly lying with a zero.
+ * Instamart and BigBasket answer requests from datacenter/VPN IPs with an empty
+ * body — no markup, no error, nothing. Scraped naively that looks exactly like a
+ * search with zero results, which sends you hunting for a parser bug that
+ * doesn't exist. This checks for the actual signature of a refusal (a page that
+ * never rendered) and raises a distinct error, so the UI can say "blocked"
+ * instead of quietly lying with a zero.
+ *
+ * Note this only catches a *refusal*. Being served a real page with an empty
+ * catalogue — what these sites do to any IP outside India — looks perfectly
+ * healthy here and is caught later by the quality gate in engine/quality.js.
  */
-export class BlockedError extends Error {
+class BlockedError extends Error {
   constructor(platform, detail) {
     super(`${platform} returned an empty page — the platform is refusing this connection${detail ? ` (${detail})` : ''}`);
     this.name = 'BlockedError';

@@ -13,7 +13,28 @@ import './db.js';
 
 const app = Fastify({ logger: false, bodyLimit: 2 * 1024 * 1024 });
 
-await app.register(cors, { origin: true, credentials: true });
+/**
+ * CORS is deliberately narrow.
+ *
+ * `origin: true` reflects whatever Origin the caller sends, which combined with
+ * `credentials: true` means any website you happen to visit could call this API
+ * and read your location, watchlist and price history — the server listens on
+ * 0.0.0.0 so your phone can reach it, which also puts it on the LAN.
+ *
+ * In production the UI is served from this same origin, so no CORS is needed at
+ * all. Only the Vite dev server on :5173 is genuinely cross-origin.
+ */
+const DEV_ORIGINS = [/^http:\/\/localhost:5173$/, /^http:\/\/127\.0\.0\.1:5173$/,
+                     /^http:\/\/\[?[\da-fA-F:.]+]?:5173$/];   // LAN IP during dev
+
+await app.register(cors, {
+  origin(origin, cb) {
+    // Same-origin and non-browser callers send no Origin header.
+    if (!origin) return cb(null, true);
+    cb(null, DEV_ORIGINS.some((re) => re.test(origin)));
+  },
+  credentials: true,
+});
 
 // Minimal httpErrors shim so routes can throw structured errors without
 // pulling in another dependency.

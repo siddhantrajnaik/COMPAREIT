@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { money } from '../api';
+import { money, IS_STATIC } from '../api';
 import { IconExternal, IconEye, IconPlus, IconCheck, IconBox } from './Icons';
 
 /**
@@ -51,20 +51,24 @@ export default function ProductGroup({ group, onWatch, onBasket }) {
         {group.offers.map((o) => <OfferRow key={o.id} offer={o} multi={multi} />)}
       </div>
 
-      <div className="group-actions">
-        <button className="btn ghost sm" disabled={watched}
-                onClick={() => { setWatched(true); onWatch?.(group); }}>
-          {watched ? <IconCheck width="15" height="15" aria-hidden="true" />
-                   : <IconEye width="15" height="15" aria-hidden="true" />}
-          {watched ? 'Tracking' : 'Track price'}
-        </button>
-        <button className="btn ghost sm" disabled={basketed}
-                onClick={() => { setBasketed(true); onBasket?.(group); }}>
-          {basketed ? <IconCheck width="15" height="15" aria-hidden="true" />
-                    : <IconPlus width="15" height="15" aria-hidden="true" />}
-          {basketed ? 'In basket' : 'Add to basket'}
-        </button>
-      </div>
+      {/* Tracking and baskets both need a server to persist to. Offering the
+          buttons on the static build would only produce an apology. */}
+      {!IS_STATIC && (
+        <div className="group-actions">
+          <button className="btn ghost sm" disabled={watched}
+                  onClick={() => { setWatched(true); onWatch?.(group); }}>
+            {watched ? <IconCheck width="15" height="15" aria-hidden="true" />
+                     : <IconEye width="15" height="15" aria-hidden="true" />}
+            {watched ? 'Tracking' : 'Track price'}
+          </button>
+          <button className="btn ghost sm" disabled={basketed}
+                  onClick={() => { setBasketed(true); onBasket?.(group); }}>
+            {basketed ? <IconCheck width="15" height="15" aria-hidden="true" />
+                      : <IconPlus width="15" height="15" aria-hidden="true" />}
+            {basketed ? 'In basket' : 'Add to basket'}
+          </button>
+        </div>
+      )}
     </article>
   );
 }

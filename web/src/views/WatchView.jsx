@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api, money, ago } from '../api';
+import { api, money, ago, IS_STATIC } from '../api';
 import { useAsync } from '../hooks';
 import Sparkline from '../components/Sparkline';
 import DealsStrip from '../components/DealsStrip';
@@ -15,10 +15,19 @@ export default function WatchView({ toast, bump }) {
 
       <div className="section-head">
         <h2>Tracking</h2>
-        <button className="btn ghost sm" onClick={() => setAdding((v) => !v)}>
-          <IconPlus width="14" height="14" /> New
-        </button>
+        {!IS_STATIC && (
+          <button className="btn ghost sm" onClick={() => setAdding((v) => !v)}>
+            <IconPlus width="14" height="14" /> New
+          </button>
+        )}
       </div>
+
+      {IS_STATIC && (
+        <p className="tiny muted" style={{ padding: '0 20px 10px', lineHeight: 1.55 }}>
+          This list comes from <code>watchlist.json</code> in the repo. Edit that file
+          and push to change what's tracked — there's no server here to save to.
+        </p>
+      )}
 
       {adding && (
         <AddWatch
@@ -130,12 +139,16 @@ function WatchCard({ watch: w, onChange, toast }) {
             {w.last_checked ? `checked ${ago(w.last_checked)}` : 'not checked yet'}
           </div>
         </div>
-        <button className="btn ghost sm" onClick={check} disabled={busy} title="Check now">
-          <IconRefresh width="14" height="14" className={busy ? 'spin' : ''} />
-        </button>
-        <button className="btn ghost sm" onClick={remove} title="Stop tracking">
-          <IconTrash width="14" height="14" />
-        </button>
+        {!IS_STATIC && (
+          <>
+            <button className="btn ghost sm" onClick={check} disabled={busy} title="Check now">
+              <IconRefresh width="14" height="14" className={busy ? 'spin' : ''} />
+            </button>
+            <button className="btn ghost sm" onClick={remove} title="Stop tracking">
+              <IconTrash width="14" height="14" />
+            </button>
+          </>
+        )}
       </div>
 
       {best ? (

@@ -155,7 +155,13 @@ export const staticApi = {
   async markSeen() { return { ok: true }; },
   async clearAlerts() { throw new Unsupported('Clearing alerts'); },
 
-  async lists() { return []; },
+  // A single default list so the Basket view has something coherent to render
+  // instead of an empty selector with no way to add to it.
+  async lists() { return [{ id: 1, name: 'My list', created_at: 0, count: 0 }]; },
+  async addList() { throw new Unsupported('Creating a list'); },
+  async renameList() { throw new Unsupported('Renaming a list'); },
+  async delList() { throw new Unsupported('Deleting a list'); },
+
   async basket() { return []; },
   async addBasket() { throw new Unsupported('The basket'); },
   async updateBasket() { throw new Unsupported('The basket'); },

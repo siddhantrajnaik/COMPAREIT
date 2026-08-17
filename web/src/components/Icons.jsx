@@ -21,5 +21,3 @@ export const IconTrendDown = (p) => <S {...p}><path d="m3 7 6.5 6.5 4-4L21 17" /
 export const IconTarget = (p) => <S {...p}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r=".6" fill="currentColor" /></S>;
 export const IconTag = (p) => <S {...p}><path d="M20.6 13.4 12 22l-9-9V4a1 1 0 0 1 1-1h9l7.6 7.6a2 2 0 0 1 0 2.8Z" /><circle cx="7.5" cy="7.5" r="1.3" /></S>;
 export const IconBowl = (p) => <S {...p}><path d="M3 11h18a9 9 0 0 1-9 9 9 9 0 0 1-9-9Z" /><path d="M8 8c0-1.5 1-2 1-3M12 7c0-1.5 1-2 1-3M16 8c0-1.5 1-2 1-3" /></S>;
-export const IconCompare = (p) => <S {...p}><path d="M4 8h11M4 8l3-3M4 8l3 3" /><path d="M20 16H9m11 0-3-3m3 3-3 3" /></S>;
-export const IconChevron = (p) => <S {...p}><path d="m9 6 6 6-6 6" /></S>;

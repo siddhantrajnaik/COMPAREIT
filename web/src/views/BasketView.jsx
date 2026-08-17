@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { api, money } from '../api';
+import { api, money, IS_STATIC } from '../api';
 import { useLocalState } from '../hooks';
-import { IconTrash, IconPlus, IconRefresh, IconClose } from '../components/Icons';
+import { IconTrash, IconPlus, IconRefresh, IconClose, IconBasket } from '../components/Icons';
 
 /**
  * The basket is where the app earns its keep.
@@ -77,6 +77,26 @@ export default function BasketView({ toast, bump }) {
       setActiveId(ls[0]?.id ?? null);
     } catch (e) { toast?.({ title: 'Cannot delete', body: e.message }); }
   };
+
+  // The basket needs a server for every single one of its operations: storing
+  // lines, re-pricing them, and costing whole carts against live fees. Showing
+  // an inert version would be worse than saying so.
+  if (IS_STATIC) {
+    return (
+      <>
+        <div className="section-head"><h2>Basket</h2></div>
+        <div className="empty">
+          <div className="art"><IconBasket aria-hidden="true" /></div>
+          <h3>Needs the full app</h3>
+          <p>
+            Working out whether one shop beats two once delivery fees are counted means
+            re-pricing your whole list on demand — which needs a server. Run QuickCompare
+            on your own machine to use it.
+          </p>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>

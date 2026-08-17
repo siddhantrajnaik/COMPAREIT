@@ -11,7 +11,7 @@ import { sleep } from '../browser.js';
 
 export const ALL_ADAPTERS = { blinkit, zepto, instamart, bigbasket, dmart, flipkart, jiomart };
 
-export function activeAdapters(filter) {
+function activeAdapters(filter) {
   const wanted = filter?.length ? filter : config.platforms;
   return wanted.map((id) => ALL_ADAPTERS[id]).filter(Boolean);
 }
