@@ -9,6 +9,7 @@
 import { parseUnit, pricePerUnit, similarity, relevance } from '../src/normalize.js';
 import { optimiseBasket } from '../src/engine/basket.js';
 import { assessRun } from '../src/engine/quality.js';
+import { makeCapturedAdapter, pluck, findItemArray } from '../src/adapters/captured.js';
 
 let pass = 0, fail = 0;
 const t = (name, ok, detail = '') => {
@@ -137,6 +138,50 @@ console.log('\nscrape quality gate');
   // Everything failed, quick-commerce enabled.
   r = assessRun(S({}), ALL);
   t('total failure is flagged', r.degraded === true);
+}
+
+console.log('\ncaptured mobile-API mapping');
+{
+  // Shaped like a real quick-commerce mobile response: products buried under
+  // nested keys, prices in a sub-object, plus decoy arrays of banners.
+  const payload = {
+    meta: { ok: true },
+    layout: {
+      banners: [{ id: 'b1', title: 'Sale' }, { id: 'b2', title: 'New' }],
+      widgets: [{
+        type: 'grid',
+        products: [
+          { id: 'p1', title: 'Amul Gold Milk', quantity: '1 L',   price: { value: 79, mrp: 85 }, available: true },
+          { id: 'p2', title: 'Amul Taaza Milk', quantity: '500 ml', price: { value: 29, mrp: 29 }, available: true },
+          { id: 'p3', title: 'Nandini Milk',    quantity: '1 L',   price: { value: 46, mrp: 52 }, available: false },
+        ],
+      }],
+    },
+  };
+
+  const found = findItemArray(payload);
+  t('auto-detects the product array over decoys', found.length === 3, `found ${found.length}`);
+
+  t('pluck reads nested paths', pluck(payload, 'layout.widgets[0].products[1].price.value') === 29);
+  t('pluck survives a missing path', pluck(payload, 'a.b.c') === undefined);
+
+  const cfg = {
+    platform: 'flipkart-minutes', label: 'Flipkart Minutes',
+    request: { url: 'https://example.invalid' },
+    map: { id: 'id', name: 'title', unitText: 'quantity', price: 'price.value', mrp: 'price.mrp', inStock: 'available' },
+  };
+  // Exercise the mapping directly, without a network call.
+  const mapped = found.map((it) => ({
+    name: pluck(it, cfg.map.name),
+    price: pluck(it, cfg.map.price),
+    mrp: pluck(it, cfg.map.mrp),
+    unitText: pluck(it, cfg.map.unitText),
+    inStock: !!pluck(it, cfg.map.inStock),
+  }));
+  t('maps name and price', mapped[0].name === 'Amul Gold Milk' && mapped[0].price === 79);
+  t('maps pack size for price-per-unit', mapped[1].unitText === '500 ml');
+  t('carries stock state through', mapped[2].inStock === false);
+  t('adapter id matches the platform key', makeCapturedAdapter(cfg).id === 'flipkart-minutes');
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

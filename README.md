@@ -22,7 +22,25 @@ Runs entirely on your own machine. Nothing leaves the device.
 | **JioMart** | **Off by default** — gates hard on pincode and resists automation | Blocked |
 | **Amazon Now** | **Not supported.** Amazon answers automation with a download-trigger, and Amazon Now is app-first behind auth. No honest adapter is possible | — |
 
-### Flipkart Minutes is not supported — and "Flipkart" here isn't it
+### Getting Minutes, Amazon Now and the blocked platforms working
+
+Everything above concerns the **websites**. The mobile apps have none of those
+problems — they send lat/lon in a request and get clean JSON back, with no
+pincode modal, no hydration and no bot wall.
+
+So you can add any of them by capturing one request from the app on your own
+device. The adapter is then a config file, not code:
+
+```bash
+npm run captured -- flipkart-minutes milk
+```
+
+Full walkthrough in **[docs/CAPTURE.md](docs/CAPTURE.md)** — about 20 minutes per
+platform, once. Captured configs live in `data/captured/` (gitignored, because
+they carry your auth token). This is also simply faster: one JSON call instead
+of driving Chromium, so searches drop from ~7s to well under a second.
+
+### Flipkart Minutes is not supported by the web adapter — and "Flipkart" isn't it
 
 Worth being explicit, because the labels invite the wrong assumption.
 

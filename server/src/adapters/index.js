@@ -5,11 +5,18 @@ import { bigbasket } from './bigbasket.js';
 import { dmart } from './dmart.js';
 import { flipkart } from './flipkart.js';
 import { jiomart } from './jiomart.js';
+import { loadCapturedAdapters } from './captured.js';
 import { config } from '../config.js';
 import { logScrape, recordOffer } from '../db.js';
 import { sleep } from '../browser.js';
 
-export const ALL_ADAPTERS = { blinkit, zepto, instamart, bigbasket, dmart, flipkart, jiomart };
+// Captured mobile-API adapters are merged in last so a captured config can
+// replace a scraped one — e.g. dropping in flipkart-minutes.json gives you the
+// real 10-minute service instead of the marketplace fallback.
+export const ALL_ADAPTERS = {
+  blinkit, zepto, instamart, bigbasket, dmart, flipkart, jiomart,
+  ...loadCapturedAdapters(),
+};
 
 function activeAdapters(filter) {
   const wanted = filter?.length ? filter : config.platforms;

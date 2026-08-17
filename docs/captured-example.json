@@ -1,0 +1,36 @@
+{
+  "_readme": "Template for a mobile-API adapter. Copy to data/captured/<platform>.json and fill in from a captured request — see docs/CAPTURE.md. data/ is gitignored because these files carry your auth token. Never commit one.",
+
+  "platform": "flipkart-minutes",
+  "label": "Flipkart Minutes",
+
+  "request": {
+    "url": "https://REPLACE-ME/search",
+    "method": "POST",
+    "headers": {
+      "authorization": "Bearer REPLACE-ME",
+      "user-agent": "REPLACE-ME (copy exactly from the capture)",
+      "accept": "application/json"
+    },
+    "_note": "{{query}} is replaced with the search term. Put it wherever the app put the word you searched for — body field, path segment or query string.",
+    "body": {
+      "query": "{{query}}",
+      "lat": 12.9716,
+      "lon": 77.5946
+    }
+  },
+
+  "map": {
+    "_note": "Dot paths, with [0] for arrays: price.offers[0].amount. Omit itemsPath and the product array is detected automatically.",
+    "itemsPath": null,
+    "id": "id",
+    "name": "title",
+    "brand": "brand",
+    "unitText": "quantity",
+    "price": "price.value",
+    "mrp": "price.mrp",
+    "image": "images[0]",
+    "inStock": "available",
+    "eta": "eta"
+  }
+}

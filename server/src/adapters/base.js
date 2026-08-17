@@ -81,6 +81,12 @@ export const PLATFORM_META = {
   dmart:     { label: 'DMart',     kind: 'slotted',     color: '#00A0E3', textColor: '#ffffff', deliveryFee: 49, freeAbove: 999, handling: 0 },
   jiomart:   { label: 'JioMart',   kind: 'slotted',     color: '#0C831F', textColor: '#ffffff', deliveryFee: 40, freeAbove: 999, handling: 0 },
   flipkart:  { label: 'Flipkart',  kind: 'marketplace', color: '#2874F0', textColor: '#ffffff', deliveryFee: 40, freeAbove: 500, handling: 0 },
+
+  // Reachable only via captured mobile-API configs (see docs/CAPTURE.md).
+  // Present here so that the moment a capture is dropped in, the UI already
+  // knows the brand colour, delivery class and fee shape.
+  'flipkart-minutes': { label: 'Flipkart Minutes', kind: 'quick', color: '#FFD400', textColor: '#1a1a1a', deliveryFee: 25, freeAbove: 199, handling: 9 },
+  'amazon-now':       { label: 'Amazon Now',       kind: 'quick', color: '#FF9900', textColor: '#1a1a1a', deliveryFee: 25, freeAbove: 199, handling: 9 },
 };
 
 /** Short, honest description of how long an order actually takes to arrive. */

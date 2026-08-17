@@ -19,6 +19,7 @@
     "build": "npm -w web run build",
     "start": "node --disable-warning=ExperimentalWarning server/src/index.js",
     "test": "node --disable-warning=ExperimentalWarning server/test/run.js",
+    "captured": "node --disable-warning=ExperimentalWarning server/scripts/test-captured.js",
     "login": "node server/scripts/login.js"
   },
   "devDependencies": {
