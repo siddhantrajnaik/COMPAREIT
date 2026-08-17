@@ -57,14 +57,35 @@ export { num };
  * and differ by city and cart value; these are sane defaults you can edit in
  * the app's Settings rather than hard truths.
  */
+/**
+ * `kind` is not cosmetic — it stops the app comparing unlike things.
+ *
+ *   quick       10-minute dark-store delivery
+ *   slotted     same/next-day grocery, delivered in a chosen slot
+ *   marketplace third-party sellers, delivery in days, bulk packs common
+ *
+ * A ₹63 butter arriving in 8 minutes and a ₹63 butter arriving Thursday from a
+ * reseller are not the same offer, and showing them in one column with only a
+ * price to separate them invites the wrong conclusion. The UI labels anything
+ * that isn't `quick` so the trade-off is visible.
+ *
+ * Note on Flipkart: this is the general marketplace, NOT Flipkart Minutes.
+ * Minutes sits behind an interactive pincode/login gate that never initialises
+ * under automation, so it cannot be scraped — see README.
+ */
 export const PLATFORM_META = {
-  blinkit:   { label: 'Blinkit',   color: '#F8CB46', textColor: '#1a1a1a', deliveryFee: 25, freeAbove: 199, handling: 9 },
-  zepto:     { label: 'Zepto',     color: '#3F1D6B', textColor: '#ffffff', deliveryFee: 25, freeAbove: 199, handling: 9 },
-  instamart: { label: 'Instamart', color: '#F97316', textColor: '#ffffff', deliveryFee: 25, freeAbove: 199, handling: 10 },
-  bigbasket: { label: 'BigBasket', color: '#84C225', textColor: '#1a1a1a', deliveryFee: 30, freeAbove: 400, handling: 0 },
-  // Slot-based / marketplace rather than 10-minute delivery — different fee
-  // shape, which is exactly why the optimiser costs whole baskets and not items.
-  dmart:     { label: 'DMart',     color: '#00A0E3', textColor: '#ffffff', deliveryFee: 49, freeAbove: 999, handling: 0 },
-  flipkart:  { label: 'Flipkart',  color: '#2874F0', textColor: '#ffffff', deliveryFee: 40, freeAbove: 500, handling: 0 },
-  jiomart:   { label: 'JioMart',   color: '#0C831F', textColor: '#ffffff', deliveryFee: 40, freeAbove: 999, handling: 0 },
+  blinkit:   { label: 'Blinkit',   kind: 'quick',       color: '#F8CB46', textColor: '#1a1a1a', deliveryFee: 25, freeAbove: 199, handling: 9 },
+  zepto:     { label: 'Zepto',     kind: 'quick',       color: '#3F1D6B', textColor: '#ffffff', deliveryFee: 25, freeAbove: 199, handling: 9 },
+  instamart: { label: 'Instamart', kind: 'quick',       color: '#F97316', textColor: '#ffffff', deliveryFee: 25, freeAbove: 199, handling: 10 },
+  bigbasket: { label: 'BigBasket', kind: 'slotted',     color: '#84C225', textColor: '#1a1a1a', deliveryFee: 30, freeAbove: 400, handling: 0 },
+  dmart:     { label: 'DMart',     kind: 'slotted',     color: '#00A0E3', textColor: '#ffffff', deliveryFee: 49, freeAbove: 999, handling: 0 },
+  jiomart:   { label: 'JioMart',   kind: 'slotted',     color: '#0C831F', textColor: '#ffffff', deliveryFee: 40, freeAbove: 999, handling: 0 },
+  flipkart:  { label: 'Flipkart',  kind: 'marketplace', color: '#2874F0', textColor: '#ffffff', deliveryFee: 40, freeAbove: 500, handling: 0 },
+};
+
+/** Short, honest description of how long an order actually takes to arrive. */
+export const KIND_NOTE = {
+  quick: null,                       // the baseline — no note needed
+  slotted: 'delivery slot',
+  marketplace: 'ships in days',
 };

@@ -22,6 +22,26 @@ Runs entirely on your own machine. Nothing leaves the device.
 | **JioMart** | **Off by default** — gates hard on pincode and resists automation | Blocked |
 | **Amazon Now** | **Not supported.** Amazon answers automation with a download-trigger, and Amazon Now is app-first behind auth. No honest adapter is possible | — |
 
+### Flipkart Minutes is not supported — and "Flipkart" here isn't it
+
+Worth being explicit, because the labels invite the wrong assumption.
+
+**Flipkart Minutes** (the 10-minute service) could not be reached. Every grocery
+surface is gated behind an interactively-set delivery pincode that cookies don't
+satisfy: `?marketplace=GROCERY` answers *"Select city · Verify Delivery
+Pincode"*, `/grocery-supermart-store` sits on *"Hang on, loading content"*
+forever, `/minutes` returns *"Oops! Something broke"*, and clicking the location
+selector produces no input element at all. The page never initialises under
+automation, so there is nothing to scrape.
+
+**What the `flipkart` adapter actually returns is the general marketplace** —
+third-party sellers, bulk packs, delivery in days. That is genuinely useful for
+non-perishables and useless for milk. Because putting it in the same column as
+Blinkit's 8-minute delivery invites a wrong conclusion, every platform now
+carries a `kind` (`quick` / `slotted` / `marketplace`) and the UI labels
+anything that isn't 10-minute delivery. A cheaper marketplace price is not
+automatically the better buy.
+
 ### The constraint that actually matters: geography
 
 Blinkit, Zepto, DMart, Instamart and BigBasket serve **India only**. From a

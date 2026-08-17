@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { money, IS_STATIC } from '../api';
+
+/** Mirrors KIND_NOTE on the server; kept here so the UI has no extra fetch. */
+const KIND_NOTE = { quick: null, slotted: 'delivery slot', marketplace: 'ships in days' };
 import { IconExternal, IconEye, IconPlus, IconCheck, IconBox } from './Icons';
 
 /**
@@ -93,6 +96,11 @@ function OfferRow({ offer: o, multi }) {
         <div className="offer-meta">
           {o.unitText && <span>{o.unitText}</span>}
           {o.eta && <span>· {o.eta}</span>}
+          {/* Say plainly when an offer isn't 10-minute delivery — otherwise a
+              cheaper marketplace price reads as a straight win when it isn't. */}
+          {KIND_NOTE[o.meta.kind] && (
+            <span style={{ color: 'var(--warn)', fontWeight: 600 }}>· {KIND_NOTE[o.meta.kind]}</span>
+          )}
           {o.deal?.median && o.price < o.deal.median && (
             <span style={{ color: 'var(--mint-ink)', fontWeight: 650 }}>
               · under its {money(o.deal.median)} usual
