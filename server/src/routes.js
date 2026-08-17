@@ -34,7 +34,7 @@ async function doSearch(query, { platforms, fresh } = {}) {
   // filler; scoring it here keeps the top of the list honest without throwing
   // away the tail entirely.
   for (const g of all) {
-    g.relevance = Math.max(...g.offers.map((o) => relevance(query, o.name, o.brand)));
+    g.relevance = Math.max(...g.offers.map((o) => relevance(query, o.name, o.brand, o.unitText)));
     for (const o of g.offers) {
       const evaluated = evaluateOffer(o, null);
       o.deal = { score: evaluated.score, signals: evaluated.signals, median: evaluated.median };

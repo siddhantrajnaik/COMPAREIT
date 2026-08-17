@@ -151,7 +151,7 @@ export { tokens };
  * the platform's purposes, but they're noise in a price comparison, so we score
  * overlap against the query and let the caller rank or drop the tail.
  */
-export function relevance(query, name, brand) {
+export function relevance(query, name, brand, unitText) {
   const q = tokens(query);
   if (!q.length) return 1;
   const hay = new Set([...tokens(name), ...tokens(brand)]);
@@ -163,7 +163,21 @@ export function relevance(query, name, brand) {
       if (h.length > 3 && (h.startsWith(t) || t.startsWith(h))) { hits += 0.5; break; }
     }
   }
-  return hits / q.length;
+  let score = hits / q.length;
+
+  // If the query names a size, honour it. Without this, "aashirvaad atta 5 kg"
+  // happily matched a 1kg pack on brand and product words alone and reported
+  // ₹71 as the best price for 5kg — a wrong answer stated confidently, which
+  // is the worst kind this app can give.
+  const wanted = parseUnit(query);
+  const got = parseUnit(unitText || name);
+  if (wanted && got && wanted.unit === got.unit) {
+    const ratio = Math.min(wanted.qty, got.qty) / Math.max(wanted.qty, got.qty);
+    if (ratio < 0.9) score *= 0.25;        // different pack — demote hard
+    else if (ratio < 0.99) score *= 0.8;   // close enough to still be useful
+  }
+
+  return score;
 }
 
 /**

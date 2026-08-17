@@ -15,14 +15,54 @@ problems — read the trade-off before picking.
 | Setup effort | ~10 minutes | ~30 minutes |
 | Maintenance | None | Occasional |
 
-**Both are limited to Blinkit, Zepto, DMart and Flipkart.** Instamart, BigBasket
-and JioMart serve empty responses to datacenter IPs. Nothing in the code can fix
-that — only a residential connection reaches them, which is why running locally
-(or on a Pi / old phone at home) still gives the fullest coverage.
+---
+
+## Read this first: the machine must be in India
+
+This is the constraint that decides everything else.
+
+Blinkit, Zepto, DMart, Instamart and BigBasket serve **India only**. From a
+foreign IP they return a normal-looking page with no catalogue on it — not an
+error, not a captcha, just nothing to buy. No amount of location cookies changes
+this, because it's geography, not bot detection.
+
+**GitHub's hosted runners are US-based.** A real run there produced exactly that:
+
+```
+blinkit=0  zepto=0  dmart=0  flipkart=354
+```
+
+And those 354 Flipkart results were marketplace listings, not groceries — a
+search for brown bread returned sugar-free raspberry cookies at ₹383. The
+scraper now refuses to publish a run where no quick-commerce platform responded,
+and switches off deals and notifications, rather than showing prices that look
+real and aren't.
+
+**What this means in practice:**
+
+| Where it runs | Result |
+|---|---|
+| Your PC / a Pi / a phone at home (India) | All platforms. Best coverage |
+| A VM in an **India region** (Oracle Mumbai or Hyderabad) | Works |
+| GitHub Actions, or any VM outside India | **Does not work** |
+
+So: Option 1 below is only viable with a self-hosted runner in India. Option 2
+works if — and only if — you pick an Indian region.
 
 ---
 
 ## Option 1 — GitHub Actions + Pages
+
+> **Only works with a self-hosted runner in India.** On GitHub's own runners the
+> quick-commerce platforms return nothing (see above), and the workflow will
+> publish a snapshot marked *degraded* with deals and alerts disabled.
+>
+> To use it properly, run a self-hosted runner on any always-on machine at home
+> (Settings → Actions → Runners → New self-hosted runner) and change
+> `runs-on: ubuntu-latest` to `runs-on: self-hosted` in the workflow. You then
+> get residential-IP coverage *and* free static hosting — the best of both.
+>
+> If you have no such machine, use Option 2 with an Indian region instead.
 
 No server, nothing to maintain. A scheduled job scrapes your watchlist, commits
 the results, and publishes a static build that reads them.
@@ -88,6 +128,9 @@ Any other Linux box works identically.
 
 ### 1. Create the VM
 
+- **Region: India — Mumbai or Hyderabad.** This is not optional. Pick anything
+  else and Blinkit, Zepto and DMart will return nothing. Your home region is
+  fixed when you create the Oracle account, so choose it at signup.
 - Shape: **VM.Standard.A1.Flex**, 2 OCPU / 12 GB is ample (1 OCPU / 6 GB is fine)
 - Image: **Ubuntu 22.04**
 - Add your SSH key
@@ -180,7 +223,16 @@ docker run --rm -v comparelt_qc-data:/data -v $(pwd):/out alpine \
 
 ## A note on the honest limits
 
-Neither option reaches Instamart, BigBasket or JioMart, because both run on
-datacenter IPs. If full coverage matters more than convenience, the best setup
-is a small always-on machine on your home network — a Raspberry Pi, or an old
-Android phone running Termux. Same code, residential IP, all seven platforms.
+Even from an Indian datacenter, Instamart, BigBasket and JioMart may still
+refuse — they discriminate on datacenter IPs specifically, on top of geography.
+Blinkit, Zepto, DMart and Flipkart are the reliable set when hosted.
+
+If full coverage matters more than convenience, the best setup is genuinely the
+simplest: a small always-on machine on your home network. A Raspberry Pi, or an
+old Android phone running Termux, costs nothing to run and gives you a
+residential Indian IP — all seven platforms, live search, the lot. Pair it with
+a Cloudflare Tunnel and you can reach it from anywhere without exposing your
+home network.
+
+That was the right answer from the start, and the detour through hosted runners
+is what proved it.

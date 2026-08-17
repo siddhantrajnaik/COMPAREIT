@@ -22,13 +22,20 @@ Runs entirely on your own machine. Nothing leaves the device.
 | **JioMart** | **Off by default** — gates hard on pincode and resists automation | Blocked |
 | **Amazon Now** | **Not supported.** Amazon answers automation with a download-trigger, and Amazon Now is app-first behind auth. No honest adapter is possible | — |
 
-An earlier version of this README claimed Zepto blocks datacenter IPs. That was
-wrong — the empty response came from the old `zeptonow.com` URL before its
-redirect, compounded by a broken adapter. Once fixed, Zepto returns full results
-from a datacenter. Only Instamart, BigBasket and JioMart genuinely block.
+### The constraint that actually matters: geography
 
-This matters because it means **hosting works** for four platforms including the
-two largest. See [DEPLOY.md](DEPLOY.md).
+Blinkit, Zepto, DMart, Instamart and BigBasket serve **India only**. From a
+foreign IP they return a normal-looking page with an empty catalogue — not an
+error, not a captcha. Location cookies don't help; it isn't bot detection.
+
+A real run on GitHub's US-based runners produced `blinkit=0 zepto=0 dmart=0`,
+with only Flipkart's marketplace responding — and that returned sugar-free
+cookies for a brown-bread query. The scheduled scraper now refuses to publish
+such a run and disables deals and alerts, rather than showing prices that look
+real and aren't.
+
+So the machine running this has to be in India: your own PC, a Pi or old phone
+at home, or a VM in an Indian region. See [DEPLOY.md](DEPLOY.md).
 
 ---
 
@@ -61,12 +68,13 @@ Blinkit, Zepto, DMart and Flipkart.
 
 ## Where to run it
 
-| | Local | GitHub Actions + Pages | Always-on VM |
+| | Local / Pi / phone at home | VM in an India region | GitHub Actions |
 |---|---|---|---|
-| Cost | Free | Free | Free (Oracle Always Free) |
-| Platforms | All 7 | 4 | 4 |
-| Live search | Yes | No — watchlist only | Yes |
-| Needs your PC on | Yes | No | No |
+| Cost | Free | Free (Oracle Always Free) | Free |
+| Platforms | All 7 | Blinkit, Zepto, DMart, Flipkart | **None** — runners are US-based |
+| Live search | Yes | Yes | No |
+| Needs your PC on | Yes (or a Pi) | No | No |
+| Verdict | Best coverage | Best hosted option | Only with a self-hosted India runner |
 
 Full instructions for the hosted options: **[DEPLOY.md](DEPLOY.md)**.
 

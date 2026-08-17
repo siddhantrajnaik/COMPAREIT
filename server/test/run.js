@@ -8,6 +8,7 @@
  */
 import { parseUnit, pricePerUnit, similarity, relevance } from '../src/normalize.js';
 import { optimiseBasket } from '../src/engine/basket.js';
+import { assessRun } from '../src/engine/quality.js';
 
 let pass = 0, fail = 0;
 const t = (name, ok, detail = '') => {
@@ -68,6 +69,21 @@ for (const [name, a, b] of yesMatch) {
 console.log('\nquery relevance');
 t('exact match scores 1', relevance('amul butter', 'Amul Salted Butter', 'Amul') === 1);
 t('unrelated scores 0', relevance('amul butter', 'Britannia Milk Bread', 'Britannia') === 0);
+{
+  // A size in the query is a requirement, not a hint. Ignoring it reported
+  // ₹71 as the best price for 5kg atta (it was a 1kg pack).
+  const right = relevance('aashirvaad atta 5 kg', 'Aashirvaad Atta', 'Aashirvaad', '5 kg');
+  const wrong = relevance('aashirvaad atta 5 kg', 'Aashirvaad Atta', 'Aashirvaad', '1 kg');
+  t(`matching size outranks wrong size (${right.toFixed(2)} vs ${wrong.toFixed(2)})`, right > wrong * 2);
+  t('wrong size falls below the 0.6 publish bar', wrong < 0.6, `scored ${wrong.toFixed(2)}`);
+  t('right size clears the publish bar', right >= 0.6, `scored ${right.toFixed(2)}`);
+
+  const near = relevance('amul milk 1 ltr', 'Amul Gold Milk', 'Amul', '1 L');
+  t('equivalent units are not penalised', near >= 0.6, `scored ${near.toFixed(2)}`);
+
+  const noSize = relevance('maggi noodles', 'Maggi Masala Noodles', 'Maggi', '70 g');
+  t('no size in query means no size penalty', noSize === 1, `scored ${noSize.toFixed(2)}`);
+}
 
 console.log('\nbasket optimisation');
 {
@@ -94,6 +110,33 @@ console.log('\nbasket optimisation');
   ];
   const r2 = optimiseBasket(lines2);
   t('incomplete cart ranked below complete', r2.singleCart[0].complete === true);
+}
+
+console.log('\nscrape quality gate');
+{
+  const S = (o) => new Map(Object.entries(o));
+  const ALL = ['blinkit', 'zepto', 'dmart', 'flipkart'];
+
+  // The real GitHub-runner failure: quick-commerce enabled, all returned zero,
+  // only the marketplace responded. Must be flagged.
+  let r = assessRun(S({ blinkit: { offers: 0 }, zepto: { offers: 0 }, dmart: { offers: 0 }, flipkart: { offers: 354 } }), ALL);
+  t('flags a run where quick-commerce returned nothing', r.degraded === true);
+  t('gives a reason when degraded', !!r.reason);
+
+  r = assessRun(S({ blinkit: { offers: 19 }, zepto: { offers: 17 }, dmart: { offers: 0 }, flipkart: { offers: 24 } }), ALL);
+  t('healthy run is not flagged', r.degraded === false);
+
+  // One working quick-commerce platform is enough to trust the run.
+  r = assessRun(S({ blinkit: { offers: 3 }, zepto: { offers: 0 } }), ['blinkit', 'zepto']);
+  t('a single working platform is enough', r.degraded === false);
+
+  // Deliberately configuring only Flipkart is a choice, not a failure.
+  r = assessRun(S({ flipkart: { offers: 100 } }), ['flipkart']);
+  t('marketplace-only config is not flagged', r.degraded === false);
+
+  // Everything failed, quick-commerce enabled.
+  r = assessRun(S({}), ALL);
+  t('total failure is flagged', r.degraded === true);
 }
 
 console.log(`\n${pass} passed, ${fail} failed\n`);

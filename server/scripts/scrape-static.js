@@ -24,6 +24,7 @@ import { searchAll } from '../src/adapters/index.js';
 import { groupOffers } from '../src/match.js';
 import { relevance, pricePerUnit } from '../src/normalize.js';
 import { PLATFORM_META } from '../src/adapters/base.js';
+import { assessRun } from '../src/engine/quality.js';
 
 const DATA_DIR = path.join(ROOT, 'web', 'public', 'data');
 fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -101,10 +102,14 @@ for (const [i, item] of wl.items.entries()) {
     platformStats.set(r.platform, s);
   }
 
-  // Same ranking the live API uses, so both deployments agree on "best".
+  // Stricter than the live API's `> 0` on purpose. Nobody is watching this run,
+  // so a loose match becomes a published price. Flipkart's marketplace answered
+  // "britannia brown bread" with sugar-free raspberry cookies at ₹383 — one
+  // shared token was enough. Demand most of the query to actually match.
+  const MIN_RELEVANCE = 0.6;
   const groups = groupOffers(results)
-    .map((g) => ({ ...g, relevance: Math.max(...g.offers.map((o) => relevance(q, o.name, o.brand))) }))
-    .filter((g) => g.relevance > 0)
+    .map((g) => ({ ...g, relevance: Math.max(...g.offers.map((o) => relevance(q, o.name, o.brand, o.unitText))) }))
+    .filter((g) => g.relevance >= MIN_RELEVANCE)
     .sort((a, b) => {
       const rel = Math.round(b.relevance * 4) - Math.round(a.relevance * 4);
       if (rel) return rel;
@@ -176,8 +181,31 @@ for (const [i, item] of wl.items.entries()) {
 
 await closeBrowser();
 
+/**
+ * Quality gate — must be decided before anything downstream uses it.
+ *
+ * The quick-commerce platforms are the point of this app. If none of them
+ * returned anything, whatever else came back is not a substitute — Flipkart's
+ * marketplace sells 5kg catering packs next to grocery staples, and presenting
+ * those as "the cheapest option" is worse than showing nothing.
+ *
+ * This happens when the runner is outside India: Blinkit, Zepto and DMart serve
+ * a non-serviceable page to foreign IPs regardless of location cookies. GitHub's
+ * hosted runners are US-based, so this gate will usually trip there.
+ */
+const assessment = assessRun(platformStats, platforms);
+const degraded = assessment.degraded;
+
+if (degraded) {
+  console.warn('\n!  No quick-commerce platform returned any product.');
+  console.warn('   The machine running this scrape is most likely outside India —');
+  console.warn('   Blinkit, Zepto and DMart serve a non-serviceable page to foreign IPs.');
+  console.warn('   Publishing a degraded snapshot rather than misleading prices.');
+}
+
 // Cross-item deal board, ranked the same way the live app ranks it.
-const deals = items
+// A "deal" computed from an incomplete field isn't a deal, it's a guess.
+const deals = degraded ? [] : items
   .flatMap((it) => it.groups.flatMap((g) => g.offers.map((o) => ({ ...o, forItem: it.label }))))
   .filter((o) => o.inStock && o.deal && o.deal.score >= 20)
   .sort((a, b) => {
@@ -189,6 +217,8 @@ const deals = items
 
 const snapshot = {
   generatedAt: now,
+  degraded,
+  degradedReason: assessment.reason,
   location: config.location,
   platforms: [...platformStats.entries()].map(([platform, s]) => ({
     platform, meta: PLATFORM_META[platform],
@@ -209,7 +239,10 @@ for (const id of Object.keys(history)) {
 writeJson(path.join(DATA_DIR, 'snapshot.json'), snapshot);
 writeJson(HISTORY_PATH, history);
 writeJson(ALERTS_PATH, alerts.slice(0, 100));
-writeJson(path.join(ROOT, '.push-queue.json'), firedAlerts);
+
+// Never notify off a degraded run. Waking someone's phone for a price that
+// isn't real is the worst thing this app could do.
+writeJson(path.join(ROOT, '.push-queue.json'), degraded ? [] : firedAlerts);
 
 const okPlatforms = snapshot.platforms.filter((p) => p.ok).map((p) => p.platform);
 console.log(`\nDone. ${items.length} items · ${deals.length} deals · ${firedAlerts.length} new alerts`);

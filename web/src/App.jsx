@@ -105,7 +105,20 @@ export default function App() {
       </header>
 
       <main className="main" key={tab}>
-        {IS_STATIC && tab === 'search' && (
+        {IS_STATIC && health?.degraded && (
+          <div className="card tight" style={{ background: 'var(--peach-soft)' }} role="alert">
+            <strong style={{ fontSize: 13.5, color: '#9C3F10' }}>
+              These prices are not trustworthy
+            </strong>
+            <p className="tiny muted" style={{ marginTop: 5, lineHeight: 1.55 }}>
+              {health.degradedReason} Deals and alerts are switched off until a
+              complete scrape succeeds. Run the app locally, or host it on a
+              machine in India — see DEPLOY.md.
+            </p>
+          </div>
+        )}
+
+        {IS_STATIC && !health?.degraded && tab === 'search' && (
           <div className="card tight" style={{ background: 'var(--lav-soft)' }}>
             <strong style={{ fontSize: 13.5, color: 'var(--lav-ink)' }}>Scheduled snapshot</strong>
             <p className="tiny muted" style={{ marginTop: 5, lineHeight: 1.5 }}>

@@ -8,11 +8,21 @@ name: Scrape and deploy
 # the adapters — running locally on a home connection reaches all of them.
 
 on:
-  schedule:
-    # Every 3 hours. Deliberately not more often: these are real shops, and a
-    # polite cadence is both decent and less likely to get the runner blocked.
-    - cron: '17 */3 * * *'
-  workflow_dispatch:        # lets you trigger a refresh by hand
+  # The schedule is intentionally DISABLED on GitHub-hosted runners.
+  #
+  # A real run proved they can't do the job: blinkit=0, zepto=0, dmart=0, and
+  # only Flipkart's marketplace answered — with sugar-free cookies for a
+  # brown-bread query. GitHub's runners are US-based, and these platforms serve
+  # India only. Running this every 3 hours would just burn minutes republishing
+  # a snapshot the quality gate correctly marks as untrustworthy.
+  #
+  # Enable it once you have a self-hosted runner in India (see DEPLOY.md), and
+  # switch `runs-on` below to `self-hosted` at the same time.
+  #
+  # schedule:
+  #   - cron: '17 */3 * * *'
+
+  workflow_dispatch:        # manual refresh
   push:
     branches: [main]
     paths:
@@ -31,6 +41,8 @@ concurrency:
 
 jobs:
   scrape:
+    # Change to `self-hosted` if you run a runner in India — that's the only way
+    # this job produces usable quick-commerce prices.
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -56,8 +68,25 @@ jobs:
           SCRAPE_DELAY_MS: '2500'
         run: node --disable-warning=ExperimentalWarning server/scripts/scrape-static.js
 
+      - name: Discard the run if it produced untrustworthy data
+        id: gate
+        # A scrape from outside India returns no quick-commerce products. Left
+        # alone, that snapshot would overwrite good committed data with an empty
+        # one. Restore what's in git and build from that instead — a slightly
+        # stale but correct site beats a fresh wrong one.
+        run: |
+          if [ -f web/public/data/snapshot.json ] \
+             && node -e "process.exit(require('./web/public/data/snapshot.json').degraded ? 0 : 1)"; then
+            echo "Scrape was degraded — restoring last good data."
+            git checkout -- web/public/data || true
+            rm -f .push-queue.json
+            echo "degraded=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "degraded=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Send push notifications
-        if: steps.scrape.outcome == 'success'
+        if: steps.scrape.outcome == 'success' && steps.gate.outputs.degraded == 'false'
         continue-on-error: true
         env:
           VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
@@ -67,6 +96,7 @@ jobs:
         run: node --disable-warning=ExperimentalWarning server/scripts/send-push.js
 
       - name: Commit refreshed data
+        if: steps.gate.outputs.degraded == 'false'
         run: |
           rm -f .push-queue.json
           if git diff --quiet -- web/public/data; then

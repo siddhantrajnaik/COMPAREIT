@@ -41,6 +41,8 @@ export const staticApi = {
     return {
       ok: true,
       static: true,
+      degraded: !!snapshot.degraded,
+      degradedReason: snapshot.degradedReason || null,
       generatedAt: snapshot.generatedAt,
       location: snapshot.location,
       platforms: snapshot.platforms.map((p) => p.platform),
